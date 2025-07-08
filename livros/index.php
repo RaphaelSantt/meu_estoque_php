@@ -80,6 +80,15 @@
         <a href="adicionar.php">+ Novo Livro</a>
     </div>
 
+    <!-- Adicionar formulário de busca acima da tabela -->
+     
+<form method="get" style="margin-bottom: 20px;">
+    <input type="text" name="busca" placeholder="Buscar por título ou autor" value="<?= isset($_GET['busca']) ? htmlspecialchars($_GET['busca']) : '' ?>" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 70%;">
+    <button type="submit" style="padding: 10px; border-radius: 5px; background-color: #4a90e2; color: white; border: none;">Buscar</button>
+    <a href="index.php" style="margin-left: 10px; text-decoration: none; color: #4a90e2;">Limpar</a>
+</form>
+
+
     <table>
         <thead>
             <tr>
@@ -94,11 +103,24 @@
         </thead>
         <tbody>
             <?php
-            $sql = "SELECT livros.*, editoras.nome AS nome_editora
-                    FROM livros
-                    LEFT JOIN editoras ON livros.id_editora = editoras.id
-                    ORDER BY livros.id";
-            $stmt = $pdo->query($sql);
+            $busca = $_GET['busca'] ?? '';
+
+if ($busca) {
+    $sql = "SELECT livros.*, editoras.nome AS nome_editora
+            FROM livros
+            LEFT JOIN editoras ON livros.id_editora = editoras.id
+            WHERE livros.titulo ILIKE :busca OR livros.autor ILIKE :busca
+            ORDER BY livros.id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['busca' => "%$busca%"]);
+} else {
+    $sql = "SELECT livros.*, editoras.nome AS nome_editora
+            FROM livros
+            LEFT JOIN editoras ON livros.id_editora = editoras.id
+            ORDER BY livros.id";
+    $stmt = $pdo->query($sql);
+}
+
             foreach ($stmt as $linha) {
                 echo "<tr>
                         <td>{$linha['id']}</td>
